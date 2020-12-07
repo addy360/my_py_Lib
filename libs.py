@@ -2,6 +2,7 @@
 import string
 import random
 import time
+from PyPDF2 import PdfFileReader, PdfFileWriter
 
 class PasswdGen():
     def __init__(self):
@@ -83,5 +84,44 @@ class PasswdGen():
                 break
             
 
-pg=PasswdGen()
-pg.run()
+# pg=PasswdGen()
+# pg.run()
+
+class SecurePdf():
+    def __init__(self,file=None,passwd='Password'):
+        self.file=file
+        self.passwd=passwd
+
+    def write_encripted_data_to_file(self, file_data):
+        file = f'encrypted_{self.file}'
+        print('[+] Writting encrypted data to file...')
+        with open(file,'wb') as f:
+            time.sleep(1)
+            file_data.write(f)
+            print(f'[+] {file} written successfully')
+
+    def get_pdf_file(self):
+        try:
+            return PdfFileReader(self.file)
+        except FileNotFoundError as e:
+            print(e)
+            exit(1)
+        
+
+    def enc_pdf(self):
+        parser=PdfFileWriter()
+        print(f'[+] Loading {self.file}...')
+        time.sleep(.5)
+        pdf = self.get_pdf_file()
+        for page in range(pdf.numPages):
+            parser.addPage(pdf.getPage(page))
+        print('[+] Encrypting data...')
+        time.sleep(.4)
+        parser.encrypt(self.passwd)
+
+        self.write_encripted_data_to_file(parser)
+        
+        
+sp = SecurePdf()
+sp.file='a.pdf'
+sp.enc_pdf()
