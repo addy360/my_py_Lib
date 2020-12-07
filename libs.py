@@ -122,6 +122,6 @@ class SecurePdf():
         self.write_encripted_data_to_file(parser)
         
         
-sp = SecurePdf()
-sp.file='a.pdf'
-sp.enc_pdf()
+# sp = SecurePdf()
+# sp.file='PDF_FILE'
+# sp.enc_pdf()
