@@ -3,6 +3,35 @@ import string
 import random
 import time
 from PyPDF2 import PdfFileReader, PdfFileWriter
+from colorama import Fore, Style
+
+
+class Console():
+    def __init__(self):
+        pass
+    def info(output):
+        print(f'{Fore.BLUE}[*] {output}{Style.RESET_ALL}')
+
+    def log(output):
+        print(f'{Fore.GREEN}[+] {output}{Style.RESET_ALL}')
+
+    def error(output):
+        print(f'{Fore.RED}[-] {output}{Style.RESET_ALL}')
+
+    def warn(output):
+        print(f'{Fore.YELLOW}[!] {output}{Style.RESET_ALL}')
+
+    def blue(output):
+        return f'{Fore.BLUE}{output}{Style.RESET_ALL}'
+
+    def red(output):
+        return f'{Fore.RED}{output}{Style.RESET_ALL}'
+
+    def green(output):
+        return f'{Fore.GREEN}{output}{Style.RESET_ALL}'
+
+    def yellow(output):
+        return f'{Fore.YELLOW}{output}{Style.RESET_ALL}'
 
 class PasswdGen():
     def __init__(self):
@@ -12,7 +41,7 @@ class PasswdGen():
         self.app_instrucions()
 
     def app_instrucions(self):
-        print('[+] lets generate your new password')
+        Console.info('lets generate your new password')
         time.sleep(.5)
 
     def is_choice_valid(self, choice):
@@ -27,14 +56,14 @@ class PasswdGen():
         try:
             self.password_length = int(input('[-] Length of a password > '))
         except ValueError:
-            print('[+] Invalid password length')
+            Console.error('Invalid password length')
             self.get_passwd_lenght()
 
     def instructions(self):
         self.get_passwd_lenght()
-        print(f'\t\t[!] Enter 1 for ( {self.LETTERS} )')
-        print(f'\t\t[!] Enter 2 for ( {self.NUMBERS} )')
-        print(f'\t\t[!] Enter 3 for ( {self.SYM} )')
+        print(f'\t\t[!] Enter 1 for ( {Console.yellow(self.LETTERS)} )')
+        print(f'\t\t[!] Enter 2 for ( {Console.yellow(self.NUMBERS)} )')
+        print(f'\t\t[!] Enter 3 for ( {Console.yellow(self.SYM)} )')
         print(f'\t\t[!] Enter 4 for mixed')
         time.sleep(.5)
 
@@ -54,14 +83,14 @@ class PasswdGen():
 
     def generate_password(self):
         passwd_chars = self.get_chosen_chars()
-        print('[+] Generating password, Please wait...')
-        print(f'[+] Your choice {passwd_chars}')
+        Console.info('Generating password, Please wait...')
+        Console.info(f'Your choice {passwd_chars}')
         time.sleep(1)
         pass_list  = random.sample(passwd_chars,int(self.password_length))
         generated_passwd = "".join(pass_list)
-        print(f'[+] Your newly generated password is {generated_passwd}')
+        Console.info(f'Your newly generated password is {Console.green(generated_passwd)}')
         time.sleep(.4)
-        print('[+] Done')
+        Console.log('[+] Done')
         raise KeyboardInterrupt
         
 
@@ -71,7 +100,7 @@ class PasswdGen():
             
         
         while self.is_choice_valid(self.user_choice) is False :
-            print('[!] Please enter a valid option')
+            Console.error('Please enter a valid option')
             self.get_user_choice()
         self.generate_password()
 
@@ -80,7 +109,7 @@ class PasswdGen():
             try:
                 self.getUserOptions()
             except KeyboardInterrupt:
-                print('[!] Quitting')
+                Console.info('Quitting')
                 break
             
 
@@ -94,11 +123,11 @@ class SecurePdf():
 
     def write_encripted_data_to_file(self, file_data):
         file = f'encrypted_{self.file}'
-        print('[+] Writting encrypted data to file...')
+        Console.info('Writting encrypted data to file...')
         with open(file,'wb') as f:
             time.sleep(1)
             file_data.write(f)
-            print(f'[+] {file} written successfully')
+            Console.log(f'{file} written successfully')
 
     def get_pdf_file(self):
         try:
@@ -110,18 +139,18 @@ class SecurePdf():
 
     def enc_pdf(self):
         parser=PdfFileWriter()
-        print(f'[+] Loading {self.file}...')
+        Console.info(f'Loading {self.file}...')
         time.sleep(.5)
         pdf = self.get_pdf_file()
         for page in range(pdf.numPages):
             parser.addPage(pdf.getPage(page))
-        print('[+] Encrypting data...')
+        Console.info('Encrypting data...')
         time.sleep(.4)
         parser.encrypt(self.passwd)
 
         self.write_encripted_data_to_file(parser)
         
         
-# sp = SecurePdf()
-# sp.file='PDF_FILE'
-# sp.enc_pdf()
+sp = SecurePdf()
+sp.file='PDF_FILE'
+sp.enc_pdf()
