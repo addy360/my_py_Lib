@@ -1,9 +1,9 @@
-#! /bin/env python3
 import string
 import random
 import time
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from colorama import Fore, Style
+
 
 
 class Console():
@@ -149,8 +149,32 @@ class SecurePdf():
         parser.encrypt(self.passwd)
 
         self.write_encripted_data_to_file(parser)
+
+    def run(self):
+        self.file = input('Please enter a valid pdf file name > ')
+        self.enc_pdf()
         
-        
-sp = SecurePdf()
-sp.file='PDF_FILE'
-sp.enc_pdf()
+
+def appFactory(choice, modules):
+    try:
+        return modules[str(choice)]['name']
+    except KeyError as e:
+        Console.error('Wrong module')
+        exit(1)
+
+def instructions(modules):
+    for mod in modules:
+        print(f'[{mod}] {modules[mod]["desc"]}')
+
+def main(modules):
+    Console.info('Welcome to libs helper\n')
+    instructions(modules)
+    try:
+        choice = int(input('Pick your poison > '))
+        app = appFactory(choice, modules)
+        app().run()
+    except ValueError as e:
+        Console.error('Invalid input')
+        exit(1)
+    
+
