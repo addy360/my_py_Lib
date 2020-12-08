@@ -1,9 +1,10 @@
-import string
 import random
+import string
 import time
+
 try:
-    from PyPDF2 import PdfFileReader, PdfFileWriter
     from colorama import Fore, Style
+    from PyPDF2 import PdfFileReader, PdfFileWriter
 except Exception as e:
     missing_package = str(e).split("'")[-2]
     print(f'[!] Missing package(s), run pip3 install {missing_package}')
