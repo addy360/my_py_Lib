@@ -113,9 +113,6 @@ class PasswdGen():
                 break
             
 
-# pg=PasswdGen()
-# pg.run()
-
 class SecurePdf():
     def __init__(self,file=None,passwd='Password'):
         self.file=file
@@ -133,7 +130,7 @@ class SecurePdf():
         try:
             return PdfFileReader(self.file)
         except FileNotFoundError as e:
-            print(e)
+            Console.error(e)
             exit(1)
         
 
@@ -152,6 +149,8 @@ class SecurePdf():
 
     def run(self):
         self.file = input('Please enter a valid pdf file name > ')
+        passwd = input(f'Please enter a secure password Default ({self.passwd})> ') 
+        if passwd.strip(): self.passwd = passwd 
         self.enc_pdf()
         
 
@@ -165,12 +164,14 @@ def appFactory(choice, modules):
 def instructions(modules):
     for mod in modules:
         print(f'[{mod}] {modules[mod]["desc"]}')
+        time.sleep(.3)
 
 def main(modules):
     Console.info('Welcome to libs helper\n')
+    time.sleep(.5)
     instructions(modules)
     try:
-        choice = int(input('Pick your poison > '))
+        choice = int(input('\nPick your poison > '))
         app = appFactory(choice, modules)
         app().run()
     except ValueError as e:
