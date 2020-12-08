@@ -1,8 +1,14 @@
 import string
 import random
 import time
-from PyPDF2 import PdfFileReader, PdfFileWriter
-from colorama import Fore, Style
+try:
+    from PyPDF2 import PdfFileReader, PdfFileWriter
+    from colorama import Fore, Style
+except Exception as e:
+    missing_package = str(e).split("'")[-2]
+    print(f'[!] Missing package(s), run pip3 install {missing_package}')
+    exit(1)
+
 
 
 
