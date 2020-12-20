@@ -1,9 +1,9 @@
 import random
 import string
 import time
+from utils import Console, Page
 
 try:
-    from colorama import Fore, Style
     from PyPDF2 import PdfFileReader, PdfFileWriter
 except Exception as e:
     missing_package = str(e).split("'")[-2]
@@ -13,32 +13,6 @@ except Exception as e:
 
 
 
-class Console():
-    def __init__(self):
-        pass
-    def info(output):
-        print(f'{Fore.BLUE}[*] {output}{Style.RESET_ALL}')
-
-    def log(output):
-        print(f'{Fore.GREEN}[+] {output}{Style.RESET_ALL}')
-
-    def error(output):
-        print(f'{Fore.RED}[-] {output}{Style.RESET_ALL}')
-
-    def warn(output):
-        print(f'{Fore.YELLOW}[!] {output}{Style.RESET_ALL}')
-
-    def blue(output):
-        return f'{Fore.BLUE}{output}{Style.RESET_ALL}'
-
-    def red(output):
-        return f'{Fore.RED}{output}{Style.RESET_ALL}'
-
-    def green(output):
-        return f'{Fore.GREEN}{output}{Style.RESET_ALL}'
-
-    def yellow(output):
-        return f'{Fore.YELLOW}{output}{Style.RESET_ALL}'
 
 class PasswdGen():
     def __init__(self):
@@ -159,10 +133,85 @@ class SecurePdf():
         passwd = input(f'Please enter a secure password Default ({self.passwd})> ') 
         if passwd.strip(): self.passwd = passwd 
         self.enc_pdf()
+
+class MillardAyo(Page):
+    def __init__(self):
+        super().__init__('https://millardayo.com/')
+        self.posts = []
+        self.cached_posts = {}
+
+    def line(self, sentense, line_type = '='):
+        return ''.ljust(len(sentense),line_type)
+
+    def parse_post_details(self, post_detail_html):
+        soup = self.get_soup(post_detail_html)
+        post_header = soup.select_one('div#post-header>h1').text
+        post_content = soup.select_one('div.post-section')
+        print('\n')
+        print(Console.yellow(self.line(post_header)))
+        print(post_header)
+        print(Console.yellow(self.line(post_header)))
+        print('\n')
+        print(post_content.text.strip())
+
+
+
+    def get_post_details(self, post_url):
+        self.URL = post_url
+        post_html = self.get_res()
+        self.parse_post_details(post_html)
+
+    def user_choice(self,next_page_url=None):
+        choice = input(f"\n{Console.green('Enter (n) for next page or post number for post details > ')}")
+        try:
+            post_url = self.posts[int(choice)-1]['post_link']
+            self.get_post_details(post_url)
+        except Exception:
+            if choice.strip().lower() == 'n':
+                Console.info('Going to next page')
+
+                # TODO caching for easier backward navigation
+                # self.cached_posts[self.URL] = self.posts
+                self.posts = []
+                self.parse_next_page(next_page_url)
+            else:
+                Console.error("Wrong choice")
+                self.user_choice()
+    
+    def parse_next_page(self,next_page_url):
+        self.URL = next_page_url
+        
+        self.parse_result()
+
+    def print_posts(self, i, post):
+        time.sleep(.2)
+        Console.warn(f'{i+1} : {post.h2.a.text}')
+        self.posts.append({'post_title':post.h2.a.text , 'post_link':post.h2.a['href']})
+
+    def parse_result(self):
+        html_result = self.get_res()
+        soup = self.get_soup(html_result)
+        list_posts = soup.find_all('li', class_="infinite-post")
+        next_page_url = soup.select('div.pagination>a:not(.inactive)')[-2]['href']
+        for i,post in enumerate(list_posts):
+            self.print_posts(i, post)
+        
+        if next_page_url:
+            self.user_choice(next_page_url)
+
+    def get_res(self):
+        res = self.get_page()
+        return res
+
+    def run(self):
+        self.parse_result()
+        
         
 
 def appFactory(choice, modules):
     try:
+        Console.info(f"{modules[str(choice)]['desc']}")
+        time.sleep(.5)
         return modules[str(choice)]['name']
     except KeyError as e:
         Console.error('Wrong module')
