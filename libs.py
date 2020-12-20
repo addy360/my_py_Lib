@@ -168,17 +168,16 @@ class MillardAyo(Page):
             self.get_post_details(post_url)
         except Exception:
             if choice.strip().lower() == 'n':
-                Console.info('Going to next page')
-
-                # TODO caching for easier backward navigation
-                # self.cached_posts[self.URL] = self.posts
-                self.posts = []
                 self.parse_next_page(next_page_url)
             else:
                 Console.error("Wrong choice")
                 self.user_choice()
     
     def parse_next_page(self,next_page_url):
+        Console.info('Going to next page')
+        # TODO caching for easier backward navigation
+        # self.cached_posts[self.URL] = self.posts
+        self.posts = []
         self.URL = next_page_url
         
         self.parse_result()
