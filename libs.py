@@ -152,7 +152,8 @@ class MillardAyo(Page):
         print(post_header)
         print(Console.yellow(self.line(post_header)))
         print('\n')
-        print(post_content.text.strip())
+        post_detail = post_content.text.strip()
+        print(post_detail)
 
 
 
@@ -182,21 +183,21 @@ class MillardAyo(Page):
         
         self.parse_result()
 
-    def print_posts(self, i, post):
-        time.sleep(.2)
-        Console.warn(f'{i+1} : {post.h2.a.text}')
-        self.posts.append({'post_title':post.h2.a.text , 'post_link':post.h2.a['href']})
+    def print_posts(self, posts):
+        for i,post in enumerate(posts):
+            time.sleep(.2)
+            Console.warn(f'{i+1} : {post.h2.a.text}')
+            self.posts.append({'post_title':post.h2.a.text , 'post_link':post.h2.a['href']})
 
     def parse_result(self):
         html_result = self.get_res()
         soup = self.get_soup(html_result)
         list_posts = soup.find_all('li', class_="infinite-post")
         next_page_url = soup.select('div.pagination>a:not(.inactive)')[-2]['href']
-        for i,post in enumerate(list_posts):
-            self.print_posts(i, post)
         
-        if next_page_url:
-            self.user_choice(next_page_url)
+        
+        self.print_posts( list_posts)
+        self.user_choice(next_page_url)
 
     def get_res(self):
         res = self.get_page()
@@ -204,6 +205,7 @@ class MillardAyo(Page):
 
     def run(self):
         self.parse_result()
+
         
         
 
@@ -211,7 +213,7 @@ def appFactory(choice, modules):
     try:
         Console.info(f"{modules[str(choice)]['desc']}")
         time.sleep(.5)
-        return modules[str(choice)]['name']
+        return modules[str(choice)]['name']()
     except KeyError as e:
         Console.error('Wrong module')
         exit(1)
@@ -228,7 +230,7 @@ def main(modules):
     try:
         choice = int(input('\nPick your poison > '))
         app = appFactory(choice, modules)
-        app().run()
+        app.run()
     except ValueError as e:
         Console.error('Invalid input')
         exit(1)
