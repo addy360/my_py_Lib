@@ -229,8 +229,8 @@ class FileCompressor:
         if os.path.isdir(path_to_file):
             compress_name = f'{path_to_file}.tar.gzip'
         elif os.path.isfile(path_to_file):
-            file_name = path_to_file.split('/')[-1]
-            file_name = file_name.split('.')[0]
+            file_name = os.path.basename(path_to_file)
+            file_name = file_name.split('.')[-2]
             compress_name = f'{file_name}.tar.gzip'
         time.sleep(.3)
         Console.info(f'Compressing to {compress_name}')
