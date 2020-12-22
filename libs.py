@@ -1,6 +1,8 @@
 import random
 import string
 import time
+import os
+import tarfile
 from utils import Console, Page
 
 try:
@@ -206,7 +208,51 @@ class MillardAyo(Page):
     def run(self):
         self.parse_result()
 
+class FileCompressor:
+    def __init__(self):
+        pass
+
+    def get_user_input(self):
+        time.sleep(.3)
+        path = input(f"\n{Console.green('Enter path to file or folder you want to compress > ')}")
+        if len(path) == 0:
+            Console.error('Path can not be empty')
+            return None, False
+        abs_path = os.path.abspath(path)
+        if os.path.isdir(abs_path) is False and os.path.isfile(abs_path) is False:
+            Console.error('Path to file or folder does not exist. Try again...')
+            return None, False 
+
+        return abs_path, True
+
+    def compress(self,root_dir, path_to_file):
+        if os.path.isdir(path_to_file):
+            compress_name = f'{path_to_file}.tar.gzip'
+        elif os.path.isfile(path_to_file):
+            file_name = path_to_file.split('/')[-1]
+            file_name = file_name.split('.')[0]
+            compress_name = f'{file_name}.tar.gzip'
+        time.sleep(.3)
+        Console.info(f'Compressing to {compress_name}')
+
+
+        return path_to_file, True
         
+    
+    def process(self, path_to_file):
+        root_dir = os.path.dirname(path_to_file)
+        f_name = path_to_file.split('/')[-1]
+        compressed_file, was_success = self.compress(root_dir,path_to_file)
+
+
+    def run(self):
+        time.sleep(.5)
+        Console.log('Compress files and folders, even encrypt them if option chosen')
+        is_valid = False
+        while is_valid is False:
+            path_to_file, is_valid = self.get_user_input() 
+
+        self.process(path_to_file)        
         
 
 def appFactory(choice, modules):
@@ -224,6 +270,7 @@ def instructions(modules):
         time.sleep(.3)
 
 def main(modules):
+    time.sleep(.3)
     Console.info('Welcome to libs helper\n')
     time.sleep(.5)
     instructions(modules)
