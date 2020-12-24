@@ -3,7 +3,7 @@ import string
 import time
 import os
 import tarfile
-from utils import Console, Page
+from utils import Console, Page, get_file_or_folder_path
 
 try:
     from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -66,8 +66,9 @@ class PasswdGen():
 
     def generate_password(self):
         passwd_chars = self.get_chosen_chars()
-        Console.info('Generating password, Please wait...')
         Console.info(f'Your choice {passwd_chars}')
+        time.sleep(.2)
+        Console.info('Generating password, Please wait...')
         time.sleep(1)
         pass_list  = random.sample(passwd_chars,int(self.password_length))
         generated_passwd = "".join(pass_list)
@@ -101,8 +102,20 @@ class SecurePdf():
         self.file=file
         self.passwd=passwd
 
+    def get_file(self):
+        file = input('Please enter a valid pdf file name > ')
+        file_path, file_name, file_root_dir = get_file_or_folder_path(file)
+        if not file_path:
+            Console.error(f'{file} does not exist. Try again or (Ctrl + C) to quit')
+            self.get_file()
+        self.file = file_path
+        self.file_name = file_name
+        self.file_root_dir = file_root_dir
+        
+
     def write_encripted_data_to_file(self, file_data):
-        file = f'encrypted_{self.file}'
+        file = f'encrypted_{self.file_name}'
+        file = os.path.join(self.file_root_dir,file)
         Console.info('Writting encrypted data to file...')
         with open(file,'wb') as f:
             time.sleep(1)
@@ -111,6 +124,7 @@ class SecurePdf():
 
     def get_pdf_file(self):
         try:
+            print(f"[+] file being processed {self.file}")
             return PdfFileReader(self.file)
         except FileNotFoundError as e:
             Console.error(e)
@@ -131,7 +145,7 @@ class SecurePdf():
         self.write_encripted_data_to_file(parser)
 
     def run(self):
-        self.file = input('Please enter a valid pdf file name > ')
+        self.get_file()
         passwd = input(f'Please enter a secure password Default ({self.passwd})> ') 
         if passwd.strip(): self.passwd = passwd 
         self.enc_pdf()

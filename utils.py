@@ -1,3 +1,4 @@
+import os
 try:
     from colorama import Fore, Style
     import requests
@@ -58,3 +59,9 @@ class Page:
 
     def get_content(self):
         return self.get_response().content
+
+def get_file_or_folder_path(fname):
+    f_path = os.path.abspath(fname)
+    if os.path.exists(f_path):
+        return f_path , os.path.basename(f_path), os.path.dirname(f_path)
+    return None
