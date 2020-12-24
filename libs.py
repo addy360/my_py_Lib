@@ -232,30 +232,32 @@ class FileCompressor:
         if len(path) == 0:
             Console.error('Path can not be empty')
             return None, False
-        abs_path = os.path.abspath(path)
-        if os.path.isdir(abs_path) is False and os.path.isfile(abs_path) is False:
+        abs_path_turple = get_file_or_folder_path(path)
+        
+        if not abs_path_turple:
             Console.error('Path to file or folder does not exist. Try again...')
             return None, False 
 
-        return abs_path, True
+        return abs_path_turple, True
 
     def compress(self,root_dir, path_to_file):
-        if os.path.isdir(path_to_file):
-            compress_name = f'{path_to_file}.tar.gzip'
-        elif os.path.isfile(path_to_file):
-            file_name = os.path.basename(path_to_file)
+        if os.path.isdir(path_to_file[0]):
+            compress_name = f'{path_to_file[0]}.tar.gzip'
+        elif os.path.isfile(path_to_file[0]):
+            file_name = path_to_file[0]
             file_name = file_name.split('.')[-2]
             compress_name = f'{file_name}.tar.gzip'
         time.sleep(.3)
         Console.info(f'Compressing to {compress_name}')
+        #TODO actual compression
 
 
         return path_to_file, True
         
     
     def process(self, path_to_file):
-        root_dir = os.path.dirname(path_to_file)
-        f_name = path_to_file.split('/')[-1]
+        root_dir = path_to_file[2]
+        f_name = path_to_file[1]
         compressed_file, was_success = self.compress(root_dir,path_to_file)
 
 
@@ -264,9 +266,9 @@ class FileCompressor:
         Console.log('Compress files and folders, even encrypt them if option chosen')
         is_valid = False
         while is_valid is False:
-            path_to_file, is_valid = self.get_user_input() 
+            abs_path_turple, is_valid = self.get_user_input() 
 
-        self.process(path_to_file)        
+        self.process(abs_path_turple)        
         
 
 def appFactory(choice, modules):
