@@ -105,8 +105,8 @@ class SecurePdf():
     def get_file(self):
         file = input('Please enter a valid pdf file name > ')
         file_path, file_name, file_root_dir = get_file_or_folder_path(file)
-        if not file_path:
-            Console.error(f'{file} does not exist. Try again or (Ctrl + C) to quit')
+        if not file_path or file_name.split('.')[-1].lower() != 'pdf' :
+            Console.error(f'{file} does not exist or not pdf. Try again or (Ctrl + C) to quit')
             self.get_file()
         self.file = file_path
         self.file_name = file_name
