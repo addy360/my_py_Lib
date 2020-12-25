@@ -3,7 +3,7 @@ import string
 import time
 import os
 import tarfile
-from utils import Console, Page, get_file_or_folder_path
+from utils import Console, Page, get_file_or_folder_path, delete_file
 
 try:
     from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -130,6 +130,20 @@ class SecurePdf():
             Console.error(e)
             exit(1)
         
+    def choose_to_delete(self, file_name):
+        choice = input(Console.yellow(f'Do you wish to delete {file_name}? (N/y) > '))
+        choice = choice.strip().lower()
+        not_valid = choice  not in ['n','y']
+        if not_valid:
+            Console.error('Please choose a valid input!')
+            time.sleep(.2)
+            self.choose_to_delete(file_name)
+
+        if choice == 'n':
+            Console.log('Bye!')
+            return
+        Console.info(f'Deleting {file_name}...')
+        delete_file(file_name)
 
     def enc_pdf(self):
         parser=PdfFileWriter()
@@ -143,12 +157,18 @@ class SecurePdf():
         parser.encrypt(self.passwd)
 
         self.write_encripted_data_to_file(parser)
+        time.sleep(.2)
+        self.choose_to_delete(self.file)
 
     def run(self):
         self.get_file()
         passwd = input(f'Please enter a secure password Default ({self.passwd})> ') 
         if passwd.strip(): self.passwd = passwd 
-        self.enc_pdf()
+        try:
+            self.enc_pdf()
+        except Exception as e:
+            Console.error(str(e))
+            self.run()
 
 class MillardAyo(Page):
     def __init__(self):

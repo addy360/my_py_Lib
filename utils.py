@@ -65,3 +65,12 @@ def get_file_or_folder_path(fname):
     if os.path.exists(f_path):
         return f_path , os.path.basename(f_path), os.path.dirname(f_path)
     return None
+
+
+def delete_file(file_name):
+    file_turple = get_file_or_folder_path(file_name)
+    if not file_turple:
+        raise FileNotFoundError(f'{file_name} you are trying to delete does not exist.')
+    file_path = file_turple[0]
+    os.unlink(file_path)
+    Console.log(f'{file_name} deleted successfully.')
