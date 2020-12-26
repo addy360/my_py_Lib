@@ -3,7 +3,7 @@ import string
 import time
 import os
 import tarfile
-from utils import Console, Page, get_file_or_folder_path, delete_file
+from utils import Console, Page, get_file_or_folder_path, delete_file, line
 
 try:
     from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -176,17 +176,15 @@ class MillardAyo(Page):
         self.posts = []
         self.cached_posts = {}
 
-    def line(self, sentense, line_type = '='):
-        return ''.ljust(len(sentense),line_type)
 
     def parse_post_details(self, post_detail_html):
         soup = self.get_soup(post_detail_html)
         post_header = soup.select_one('div#post-header>h1').text
         post_content = soup.select_one('div.post-section')
         print('\n')
-        print(Console.yellow(self.line(post_header)))
+        print(Console.yellow(line(post_header)))
         print(post_header)
-        print(Console.yellow(self.line(post_header)))
+        print(Console.yellow(line(post_header)))
         print('\n')
         post_detail = post_content.text.strip()
         print(post_detail)
@@ -289,7 +287,60 @@ class FileCompressor:
             abs_path_turple, is_valid = self.get_user_input() 
 
         self.process(abs_path_turple)        
-        
+
+class FileFinder():
+    def __init__(self):
+        pass
+
+    def find_file(self,file_name):
+        Console.log(f'Finding "{Console.green(file_name[0])}" in {Console.green(file_name[1][0])}. Please wait...')
+        results_counter = 0
+        for file_obj in os.walk(file_name[1][0]):
+            fname = file_obj[2]
+            for filename in fname:
+                file_ = f'{file_obj[0]}{os.sep}{filename}'
+                if file_name[0].lower() in file_.lower():
+                    results_counter += 1
+                    time.sleep(.3)
+                    Console.log(f'file found at : {Console.yellow(file_)}') 
+        print('\n')
+        print_out = f"found {results_counter} resluts of '{self.file_name}'"
+        time.sleep(.2)
+        Console.warn(line(print_out))
+        time.sleep(.2)
+        Console.log(print_out)
+        time.sleep(.2)
+        Console.warn(line(print_out,'-'))
+                
+            
+
+    def get_file(self):
+        file_name = input(f"\n{Console.green('Enter name of a file you would like to find > ')}")
+        valid = len(file_name.strip()) > 1
+        if valid :
+            self.file_name = file_name
+            return
+        Console.error('Can not be empty, please try again...')
+        self.get_file()
+
+    def get_place(self):
+        place_name = input(f"\n{Console.green('Where to find the file (Valid path) > ')}")
+        folder_path = get_file_or_folder_path(place_name)
+        if folder_path:
+            self.folder_path = folder_path
+            return
+        Console.error('Path should be valid...')
+        self.get_place()
+
+
+    def get_user_input(self):
+        self.get_file()
+        self.get_place()
+        return self.file_name , self.folder_path
+
+    def run(self):
+        search_query = self.get_user_input()
+        self.find_file(search_query)
 
 def appFactory(choice, modules):
     try:

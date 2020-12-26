@@ -66,6 +66,8 @@ def get_file_or_folder_path(fname):
         return f_path , os.path.basename(f_path), os.path.dirname(f_path)
     return None
 
+def line( sentense, line_type = '='):
+        return ''.ljust(len(sentense),line_type)
 
 def delete_file(file_name):
     file_turple = get_file_or_folder_path(file_name)
