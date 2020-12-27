@@ -312,7 +312,7 @@ class FileFinder():
         time.sleep(.2)
         Console.warn(line(print_out,'-'))
                 
-            
+    
 
     def get_file(self):
         file_name = input(f"\n{Console.green('Enter name of a file you would like to find > ')}")
@@ -341,6 +341,93 @@ class FileFinder():
     def run(self):
         search_query = self.get_user_input()
         self.find_file(search_query)
+
+
+class Tanzania(Page):
+    def __init__(self):
+        super().__init__('https://en.wikipedia.org/wiki/Districts_of_Tanzania')
+
+    def get_regions(self, soup):
+        regions = soup.select('li.toclevel-1')
+        return list(map(lambda region: ' '.join(region.text.split(' ')[1:]) , regions))[1:-3]
+
+    def get_local_soup(self):
+        page = self.get_page()
+        return self.get_soup(page)
+
+    def get_district_list(self,dhead):
+        dis = []
+        for ol in dhead.parent.next_siblings:
+            try:
+                return ol.find_next_sibling('ol')
+            except Exception:
+                continue
+
+    def parse_wards(self, wards_page):
+        for p in wards_page.select('p'):
+            if 'administratively' in p.text.lower():
+               return p.text
+        return "NaN"
+        
+
+    def get_wards(self,url):
+        self.URL =  url
+        soup = self.get_local_soup()
+        return self.parse_wards(soup)
+
+            
+    def get_nice_format(self, dists):
+        dist_dict =[]
+        dist_population = 0
+        dist_name = ''
+        base_url = "https://en.wikipedia.org/"
+        urls = dists.select('a')
+        for index, dist in enumerate(dists.text.split('\n')):     
+            url = base_url + urls[index]['href']    
+            pop = dist.strip().split(' ')
+            if len(pop) == 2:
+                dist_name = ' '.join(pop)
+                dist_population = 'NaN'
+            elif len(pop)  == 4:
+                dist_name =' '.join(pop[:-1])
+                if 'http' in pop[-1] : 
+                    dist_population = pop[-1].strip(':')[0] 
+                else:
+                    dist_population = pop[-1]
+            elif len(pop) in [3,8]:
+                dist_name = ' '.join(pop[:-1])
+                dist_population = pop[-1]
+            elif len(pop) == 5: # with url as last element
+                dist_name = ' '.join(pop[:3])
+                dist_population =pop[3].strip(':')
+            elif len(pop) == 6:
+                dist_name =' '.join(pop[:3])
+                dist_population =' '.join(pop[3:])
+            elif len(pop) == 7:
+                dist_name =' '.join(pop[:3])
+                dist_population =pop[3]
+            else:
+                print(len(pop))
+            ward_details = self.get_wards(url)
+            dist_dict.append({'distict': dist_name, 'population': dist_population, 'ward_details':ward_details})
+
+        return dist_dict
+
+    def get_district(self, soup):
+        districts_heads = soup.select('h2>span.mw-headline')
+        districts = {}
+        for dis in list(districts_heads)[1:-3]:
+            districts[dis.text] =  self.get_nice_format(self.get_district_list(dis))
+        return districts
+
+    def process_page(self):
+        soup = self.get_local_soup()
+        regions = self.get_regions(soup)
+        districts = self.get_district(soup)
+        print({'districts':districts})
+
+    def run(self):
+        self.process_page()
 
 def appFactory(choice, modules):
     try:

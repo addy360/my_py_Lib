@@ -1,4 +1,4 @@
-from libs import ( PasswdGen, SecurePdf, MillardAyo, FileCompressor, FileFinder )
+from libs import ( PasswdGen, SecurePdf, MillardAyo, FileCompressor, FileFinder , Tanzania)
 
 #TODO file downloader
 #TODO files and folders compressing and encrypting
@@ -23,5 +23,9 @@ modules = {
     '5':{
         'name':FileFinder,
         'desc':'file finder'
+    },
+    '6':{
+        'name':Tanzania,
+        'desc':'Regions, Destricts, cities, wards ...'
     }
 }
