@@ -4,6 +4,8 @@ import time
 import os
 import tarfile
 import json
+import sys
+import shutil
 from utils import Console, Page, get_file_or_folder_path, delete_file, line
 
 try:
@@ -259,6 +261,11 @@ class FileCompressor:
 
         return abs_path_turple, True
 
+    def actual_compression(self, fname):
+        # print(shutil.get_archive_formats())
+        shutil.make_archive(fname,'gztar',fname)
+        Console.log('Compression has finished successfully')
+
     def compress(self,root_dir, path_to_file):
         if os.path.isdir(path_to_file[0]):
             compress_name = f'{path_to_file[0]}.tar.gzip'
@@ -268,7 +275,7 @@ class FileCompressor:
             compress_name = f'{file_name}.tar.gzip'
         time.sleep(.3)
         Console.info(f'Compressing to {compress_name}')
-        #TODO actual compression
+        self.actual_compression(path_to_file[0])
 
 
         return path_to_file, True
