@@ -3,6 +3,7 @@ import string
 import time
 import os
 import tarfile
+import json
 from utils import Console, Page, get_file_or_folder_path, delete_file, line
 
 try:
@@ -419,12 +420,19 @@ class Tanzania(Page):
         for dis in list(districts_heads)[1:-3]:
             districts[dis.text] =  self.get_nice_format(self.get_district_list(dis))
         return districts
+    def write_to_file(self, data):
+        fname = 'districts.json'
+        Console.log(f'Writting results to {fname}...')
+        time.sleep(.5)
+        with open(fname, 'w') as f:
+            f.write(json.dumps(data))
 
     def process_page(self):
         soup = self.get_local_soup()
         regions = self.get_regions(soup)
         districts = self.get_district(soup)
-        print({'districts':districts})
+        
+        self.write_to_file({'districts':districts})
 
     def run(self):
         self.process_page()
