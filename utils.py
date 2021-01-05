@@ -3,6 +3,9 @@ try:
     from colorama import Fore, Style
     import requests
     from bs4 import BeautifulSoup
+    from cryptography.fernet import Fernet
+    from Crypto.PublicKey import RSA
+    from Crypto import Random
 except Exception as e:
     missing_package = str(e).split("'")[-2]
     print(f'[!] Missing package(s), run pip3 install {missing_package}')
@@ -59,6 +62,43 @@ class Page:
 
     def get_content(self):
         return self.get_response().content
+
+class GenKeys:
+    @staticmethod
+    def generate_key():
+        key = Fernet.generate_key()
+        return key
+    @staticmethod
+    def generate_keys():
+        modulus_length = 256*8
+        privatekey = RSA.generate(modulus_length, Random.new().read)
+        publickey = privatekey.publickey()
+        return privatekey, publickey
+
+    @staticmethod
+    def write_keys_to_files():
+        os.makedirs('.keys')
+        os.chdir('.keys')
+        key = GenKeys.generate_key()
+        priv , pub = GenKeys.generate_keys()
+        with open('pub.pem','wb') as f:
+            f.write(pub.exportKey())
+        
+        with open('priv.pem','wb') as f:
+            f.write(priv.exportKey())
+
+        with open('ky.key','wb') as f:
+            f.write(key)
+
+    @staticmethod
+    def generate():
+        try:
+            GenKeys.write_keys_to_files()
+        except FileExistsError as e:
+            print(e.strerror)
+         
+    
+
 
 def get_file_or_folder_path(fname):
     f_path = os.path.abspath(fname)

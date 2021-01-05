@@ -3,6 +3,7 @@ from libs import ( PasswdGen, SecurePdf, MillardAyo, FileCompressor, FileFinder 
 #TODO file downloader
 #TODO files and folders compressing and encrypting
 
+
 modules = {
     '1':{
         'name':PasswdGen,
