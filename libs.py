@@ -247,9 +247,7 @@ class FileCompressor:
     def __init__(self):
         pass
 
-    def get_user_input(self):
-        time.sleep(.3)
-        path = input(f"\n{Console.green('Enter path to file or folder you want to compress > ')}")
+    def validate_path(self, path):
         if len(path) == 0:
             Console.error('Path can not be empty')
             return None, False
@@ -261,40 +259,87 @@ class FileCompressor:
 
         return abs_path_turple, True
 
+    def get_user_input(self):
+        time.sleep(.3)
+        path = input(f"\n{Console.green('Enter path to file or folder you want to compress > ')}")
+        return self.validate_path(path)
+
     def actual_compression(self, fname):
         # print(shutil.get_archive_formats())
         shutil.make_archive(fname,'gztar',fname)
         Console.log('Compression has finished successfully')
 
+
     def compress(self,root_dir, path_to_file):
         if os.path.isdir(path_to_file[0]):
-            compress_name = f'{path_to_file[0]}.tar.gzip'
+            compress_name = f'{path_to_file[0]}.tar.gz'
         elif os.path.isfile(path_to_file[0]):
             file_name = path_to_file[0]
             file_name = file_name.split('.')[-2]
-            compress_name = f'{file_name}.tar.gzip'
+            compress_name = f'{file_name}.tar.gz'
         time.sleep(.3)
-        Console.info(f'Compressing to {compress_name}')
+        Console.info(f'Compressing to {compress_name}, please wait...')
         self.actual_compression(path_to_file[0])
 
 
         return path_to_file, True
         
     
-    def process(self, path_to_file):
+    def process_compression(self, path_to_file):
         root_dir = path_to_file[2]
         f_name = path_to_file[1]
         compressed_file, was_success = self.compress(root_dir,path_to_file)
 
+    def process_de_compression(self,filename):
+        if not filename:
+            return
+        file_path, file_name, parent_dir = filename
+        # print(shutil.get_unpack_formats())
+        Console.log('Decompressing, Please wait...')
+        shutil.unpack_archive(filename=file_path,extract_dir=parent_dir)
 
-    def run(self):
+          
+
+    def choose_operation(self):
+        Console.warn('\t\t Choose ( 1 ) for compressing')
+        time.sleep(.5)
+        Console.warn('\t\t Choose ( 2 ) for decompressing')
+        time.sleep(.3)
+        operation = input(f"\n{Console.green('Operation > ')}")
+        try:
+            choice = int(operation)
+            if choice not in [1,2]:
+                Console.error('Not among opertaion. Retry again...')
+                time.sleep(.3)
+                self.choose_operation()
+            if choice == 1:
+                return self.compress_operation()
+            else:
+                return self.decompress_operation()
+        except Exception as e:
+            Console.error('Invalid opertaion. Retry again...')
+            time.sleep(.3)
+            return self.choose_operation()
+
+    def compress_operation(self):
         time.sleep(.5)
         Console.log('Compress files and folders, even encrypt them if option chosen')
         is_valid = False
         while is_valid is False:
             abs_path_turple, is_valid = self.get_user_input() 
+        self.process_compression(abs_path_turple) 
 
-        self.process(abs_path_turple)        
+    def decompress_operation(self):
+        time.sleep(.3)
+        path = input(f"\n{Console.green('Enter path to file or folder you want to decompress > ')}")
+        file_path_turple , is_path_valid = self.validate_path(path)
+        if is_path_valid is not True:
+            return self.decompress_operation()
+        return self.process_de_compression(file_path_turple)
+
+    def run(self):
+        self.choose_operation()
+               
 
 class FileFinder():
     def __init__(self):
