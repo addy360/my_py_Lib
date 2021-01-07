@@ -6,6 +6,7 @@ import tarfile
 import json
 import sys
 import shutil
+
 from utils import Console, Page, get_file_or_folder_path, delete_file, line
 
 try:
@@ -295,8 +296,19 @@ class FileCompressor:
             return
         file_path, file_name, parent_dir = filename
         # print(shutil.get_unpack_formats())
-        Console.log('Decompressing, Please wait...')
-        shutil.unpack_archive(filename=file_path,extract_dir=parent_dir)
+
+        extraction_file_name = ''.join(file_name.split('.')[:-2]) 
+        extraction_folder_name  = os.path.join(parent_dir,extraction_file_name)
+
+        Console.log(f'Decompressing to { extraction_folder_name } , Please wait...')
+        time.sleep(.3)
+        try:
+            shutil.unpack_archive(filename=file_path,extract_dir=extraction_folder_name)
+            return True
+        except shutil.ReadError as e:
+            Console.error('Folder not of valid type')
+            return False
+        
 
           
 
@@ -317,6 +329,7 @@ class FileCompressor:
             else:
                 return self.decompress_operation()
         except Exception as e:
+            # print(e.with_traceback())
             Console.error('Invalid opertaion. Retry again...')
             time.sleep(.3)
             return self.choose_operation()
@@ -329,13 +342,24 @@ class FileCompressor:
             abs_path_turple, is_valid = self.get_user_input() 
         self.process_compression(abs_path_turple) 
 
+    def remove_file(self, filename):
+        Console.warn(f'Removing { filename }, Please wait...')
+        delete_file(filename)
+        time.sleep(.3)
+        Console.info(f'All done.')
+
     def decompress_operation(self):
         time.sleep(.3)
         path = input(f"\n{Console.green('Enter path to file or folder you want to decompress > ')}")
         file_path_turple , is_path_valid = self.validate_path(path)
         if is_path_valid is not True:
-            return self.decompress_operation()
-        return self.process_de_compression(file_path_turple)
+            self.decompress_operation()
+        if self.process_de_compression(file_path_turple) is not True:
+            self.decompress_operation()
+        Console.log('Done decompressing...')
+        time.sleep(.3)
+        self.remove_file(file_path_turple[0])
+        
 
     def run(self):
         self.choose_operation()
