@@ -19,7 +19,7 @@ modules = {
     },
     '4':{
         'name':FileCompressor,
-        'desc':'file compressor'
+        'desc':'file compressor and decompressor'
     },
     '5':{
         'name':FileFinder,

@@ -6,8 +6,9 @@ import tarfile
 import json
 import sys
 import shutil
+from datetime import datetime
 
-from utils import Console, Page, get_file_or_folder_path, delete_file, line
+from utils import Console, Page, get_file_or_folder_path, delete_file, line, GenKeys, copy_file
 
 try:
     from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -15,9 +16,6 @@ except Exception as e:
     missing_package = str(e).split("'")[-2]
     print(f'[!] Missing package(s), run pip3 install {missing_package}')
     exit(1)
-
-
-
 
 
 class PasswdGen():
@@ -32,13 +30,13 @@ class PasswdGen():
         time.sleep(.5)
 
     def is_choice_valid(self, choice):
-        required_choices = [1,2,3,4]
+        required_choices = [1, 2, 3, 4]
         try:
             required_choices.index(int(choice))
             return True
         except ValueError:
             return False
-        
+
     def get_passwd_lenght(self):
         try:
             self.password_length = int(input('[-] Length of a password > '))
@@ -58,15 +56,15 @@ class PasswdGen():
         self.user_choice = input('[-] Your choice > ')
 
     def get_chosen_chars(self):
-        choice  = int(self.user_choice)
-        if choice  == 1:
+        choice = int(self.user_choice)
+        if choice == 1:
             return self.LETTERS
-        elif choice  == 2:
+        elif choice == 2:
             return self.NUMBERS
-        elif choice  == 3:
+        elif choice == 3:
             return self.SYM
         else:
-            return self.LETTERS + self.NUMBERS +self.SYM
+            return self.LETTERS + self.NUMBERS + self.SYM
 
     def generate_password(self):
         passwd_chars = self.get_chosen_chars()
@@ -74,20 +72,19 @@ class PasswdGen():
         time.sleep(.2)
         Console.info('Generating password, Please wait...')
         time.sleep(1)
-        pass_list  = random.sample(passwd_chars,int(self.password_length))
+        pass_list = random.sample(passwd_chars, int(self.password_length))
         generated_passwd = "".join(pass_list)
-        Console.info(f'Your newly generated password is {Console.green(generated_passwd)}')
+        Console.info(
+            f'Your newly generated password is {Console.green(generated_passwd)}')
         time.sleep(.4)
         Console.log('[+] Done')
         raise KeyboardInterrupt
-        
 
     def getUserOptions(self):
         self.instructions()
         self.get_user_choice()
-            
-        
-        while self.is_choice_valid(self.user_choice) is False :
+
+        while self.is_choice_valid(self.user_choice) is False:
             Console.error('Please enter a valid option')
             self.get_user_choice()
         self.generate_password()
@@ -99,29 +96,29 @@ class PasswdGen():
             except KeyboardInterrupt:
                 Console.info('Quitting')
                 break
-            
+
 
 class SecurePdf():
-    def __init__(self,file=None,passwd='Password'):
-        self.file=file
-        self.passwd=passwd
+    def __init__(self, file=None, passwd='Password'):
+        self.file = file
+        self.passwd = passwd
 
     def get_file(self):
         file = input('Please enter a valid pdf file name > ')
         file_path, file_name, file_root_dir = get_file_or_folder_path(file)
-        if not file_path or file_name.split('.')[-1].lower() != 'pdf' :
-            Console.error(f'{file} does not exist or not pdf. Try again or (Ctrl + C) to quit')
+        if not file_path or file_name.split('.')[-1].lower() != 'pdf':
+            Console.error(
+                f'{file} does not exist or not pdf. Try again or (Ctrl + C) to quit')
             self.get_file()
         self.file = file_path
         self.file_name = file_name
         self.file_root_dir = file_root_dir
-        
 
     def write_encripted_data_to_file(self, file_data):
         file = f'encrypted_{self.file_name}'
-        file = os.path.join(self.file_root_dir,file)
+        file = os.path.join(self.file_root_dir, file)
         Console.info('Writting encrypted data to file...')
-        with open(file,'wb') as f:
+        with open(file, 'wb') as f:
             time.sleep(1)
             file_data.write(f)
             Console.log(f'{file} written successfully')
@@ -133,11 +130,12 @@ class SecurePdf():
         except FileNotFoundError as e:
             Console.error(e)
             exit(1)
-        
+
     def choose_to_delete(self, file_name):
-        choice = input(Console.yellow(f'Do you wish to delete {file_name}? (N/y) > '))
+        choice = input(Console.yellow(
+            f'Do you wish to delete {file_name}? (N/y) > '))
         choice = choice.strip().lower()
-        not_valid = choice  not in ['n','y']
+        not_valid = choice not in ['n', 'y']
         if not_valid:
             Console.error('Please choose a valid input!')
             time.sleep(.2)
@@ -150,7 +148,7 @@ class SecurePdf():
         delete_file(file_name)
 
     def enc_pdf(self):
-        parser=PdfFileWriter()
+        parser = PdfFileWriter()
         Console.info(f'Loading {self.file}...')
         time.sleep(.5)
         pdf = self.get_pdf_file()
@@ -166,20 +164,22 @@ class SecurePdf():
 
     def run(self):
         self.get_file()
-        passwd = input(f'Please enter a secure password Default ({self.passwd})> ') 
-        if passwd.strip(): self.passwd = passwd 
+        passwd = input(
+            f'Please enter a secure password Default ({self.passwd})> ')
+        if passwd.strip():
+            self.passwd = passwd
         try:
             self.enc_pdf()
         except Exception as e:
             Console.error(str(e))
             self.run()
 
+
 class MillardAyo(Page):
     def __init__(self):
         super().__init__('https://millardayo.com/')
         self.posts = []
         self.cached_posts = {}
-
 
     def parse_post_details(self, post_detail_html):
         soup = self.get_soup(post_detail_html)
@@ -193,15 +193,14 @@ class MillardAyo(Page):
         post_detail = post_content.text.strip()
         print(post_detail)
 
-
-
     def get_post_details(self, post_url):
         self.URL = post_url
         post_html = self.get_res()
         self.parse_post_details(post_html)
 
-    def user_choice(self,next_page_url=None):
-        choice = input(f"\n{Console.green('Enter (n) for next page or post number for post details > ')}")
+    def user_choice(self, next_page_url=None):
+        choice = input(
+            f"\n{Console.green('Enter (n) for next page or post number for post details > ')}")
         try:
             post_url = self.posts[int(choice)-1]['post_link']
             self.get_post_details(post_url)
@@ -211,30 +210,31 @@ class MillardAyo(Page):
             else:
                 Console.error("Wrong choice")
                 self.user_choice()
-    
-    def parse_next_page(self,next_page_url):
+
+    def parse_next_page(self, next_page_url):
         Console.info('Going to next page')
         # TODO caching for easier backward navigation
         # self.cached_posts[self.URL] = self.posts
         self.posts = []
         self.URL = next_page_url
-        
+
         self.parse_result()
 
     def print_posts(self, posts):
-        for i,post in enumerate(posts):
+        for i, post in enumerate(posts):
             time.sleep(.2)
             Console.warn(f'{i+1} : {post.h2.a.text}')
-            self.posts.append({'post_title':post.h2.a.text , 'post_link':post.h2.a['href']})
+            self.posts.append({'post_title': post.h2.a.text,
+                               'post_link': post.h2.a['href']})
 
     def parse_result(self):
         html_result = self.get_res()
         soup = self.get_soup(html_result)
         list_posts = soup.find_all('li', class_="infinite-post")
-        next_page_url = soup.select('div.pagination>a:not(.inactive)')[-2]['href']
-        
-        
-        self.print_posts( list_posts)
+        next_page_url = soup.select(
+            'div.pagination>a:not(.inactive)')[-2]['href']
+
+        self.print_posts(list_posts)
         self.user_choice(next_page_url)
 
     def get_res(self):
@@ -243,6 +243,7 @@ class MillardAyo(Page):
 
     def run(self):
         self.parse_result()
+
 
 class FileCompressor:
     def __init__(self):
@@ -253,25 +254,26 @@ class FileCompressor:
             Console.error('Path can not be empty')
             return None, False
         abs_path_turple = get_file_or_folder_path(path)
-        
+
         if not abs_path_turple:
-            Console.error('Path to file or folder does not exist. Try again...')
-            return None, False 
+            Console.error(
+                'Path to file or folder does not exist. Try again...')
+            return None, False
 
         return abs_path_turple, True
 
     def get_user_input(self):
         time.sleep(.3)
-        path = input(f"\n{Console.green('Enter path to file or folder you want to compress > ')}")
+        path = input(
+            f"\n{Console.green('Enter path to file or folder you want to compress > ')}")
         return self.validate_path(path)
 
     def actual_compression(self, fname):
         # print(shutil.get_archive_formats())
-        shutil.make_archive(fname,'gztar',fname)
+        shutil.make_archive(fname, 'gztar', fname)
         Console.log('Compression has finished successfully')
 
-
-    def compress(self,root_dir, path_to_file):
+    def compress(self, root_dir, path_to_file):
         if os.path.isdir(path_to_file[0]):
             compress_name = f'{path_to_file[0]}.tar.gz'
         elif os.path.isfile(path_to_file[0]):
@@ -282,35 +284,45 @@ class FileCompressor:
         Console.info(f'Compressing to {compress_name}, please wait...')
         self.actual_compression(path_to_file[0])
 
-
         return path_to_file, True
-        
-    
+
+    def encrypt_file(self, filename):
+        try:
+            GenKeys.encrypt(filename[0])
+        except Exception as e:
+            Console.error(str(e))
+
     def process_compression(self, path_to_file):
         root_dir = path_to_file[2]
         f_name = path_to_file[1]
-        compressed_file, was_success = self.compress(root_dir,path_to_file)
+        compressed_file, was_success = self.compress(root_dir, path_to_file)
 
-    def process_de_compression(self,filename):
+        choice = input(
+            f"\n{Console.green(f'Encrypt { compressed_file[0] } ? (Y/n)')}")
+        if choice.lower() not in ['n', 'y'] or choice.lower() == 'n':
+            Console.info('Bye!!')
+            return
+        self.encrypt_file(compressed_file)
+
+    def process_de_compression(self, filename):
         if not filename:
             return
         file_path, file_name, parent_dir = filename
         # print(shutil.get_unpack_formats())
 
-        extraction_file_name = ''.join(file_name.split('.')[:-2]) 
-        extraction_folder_name  = os.path.join(parent_dir,extraction_file_name)
+        extraction_file_name = ''.join(file_name.split('.')[:-2])
+        extraction_folder_name = os.path.join(parent_dir, extraction_file_name)
 
-        Console.log(f'Decompressing to { extraction_folder_name } , Please wait...')
+        Console.log(
+            f'Decompressing to { extraction_folder_name } , Please wait...')
         time.sleep(.3)
         try:
-            shutil.unpack_archive(filename=file_path,extract_dir=extraction_folder_name)
+            shutil.unpack_archive(filename=file_path,
+                                  extract_dir=extraction_folder_name)
             return True
         except shutil.ReadError as e:
             Console.error('Folder not of valid type')
             return False
-        
-
-          
 
     def choose_operation(self):
         Console.warn('\t\t Choose ( 1 ) for compressing')
@@ -320,7 +332,7 @@ class FileCompressor:
         operation = input(f"\n{Console.green('Operation > ')}")
         try:
             choice = int(operation)
-            if choice not in [1,2]:
+            if choice not in [1, 2]:
                 Console.error('Not among opertaion. Retry again...')
                 time.sleep(.3)
                 self.choose_operation()
@@ -336,11 +348,12 @@ class FileCompressor:
 
     def compress_operation(self):
         time.sleep(.5)
-        Console.log('Compress files and folders, even encrypt them if option chosen')
+        Console.log(
+            'Compress files and folders, even encrypt them if option chosen')
         is_valid = False
         while is_valid is False:
-            abs_path_turple, is_valid = self.get_user_input() 
-        self.process_compression(abs_path_turple) 
+            abs_path_turple, is_valid = self.get_user_input()
+        self.process_compression(abs_path_turple)
 
     def remove_file(self, filename):
         Console.warn(f'Removing { filename }, Please wait...')
@@ -350,8 +363,9 @@ class FileCompressor:
 
     def decompress_operation(self):
         time.sleep(.3)
-        path = input(f"\n{Console.green('Enter path to file or folder you want to decompress > ')}")
-        file_path_turple , is_path_valid = self.validate_path(path)
+        path = input(
+            f"\n{Console.green('Enter path to file or folder you want to decompress > ')}")
+        file_path_turple, is_path_valid = self.validate_path(path)
         if is_path_valid is not True:
             self.decompress_operation()
         if self.process_de_compression(file_path_turple) is not True:
@@ -359,18 +373,19 @@ class FileCompressor:
         Console.log('Done decompressing...')
         time.sleep(.3)
         self.remove_file(file_path_turple[0])
-        
 
     def run(self):
         self.choose_operation()
-               
+
 
 class FileFinder():
     def __init__(self):
-        pass
+        self.found_files = []
 
-    def find_file(self,file_name):
-        Console.log(f'Finding "{Console.green(file_name[0])}" in {Console.green(file_name[1][0])}. Please wait...')
+    def find_file(self, file_name):
+        Console.log(
+            f'Finding "{Console.green(file_name[0])}" in {Console.green(file_name[1][0])}. Please wait...')
+        found_files = []
         results_counter = 0
         for file_obj in os.walk(file_name[1][0]):
             fname = file_obj[2]
@@ -378,8 +393,9 @@ class FileFinder():
                 file_ = f'{file_obj[0]}{os.sep}{filename}'
                 if file_name[0].lower() in file_.lower():
                     results_counter += 1
-                    time.sleep(.3)
-                    Console.log(f'file found at : {Console.yellow(file_)}') 
+                    time.sleep(.05)
+                    self.found_files.append(file_)
+                    Console.log(f'file found at : {Console.yellow(file_)}')
         print('\n')
         print_out = f"found {results_counter} resluts of '{self.file_name}'"
         time.sleep(.2)
@@ -387,21 +403,82 @@ class FileFinder():
         time.sleep(.2)
         Console.log(print_out)
         time.sleep(.2)
-        Console.warn(line(print_out,'-'))
-                
-    
+        Console.warn(line(print_out, '-'))
+        if len(self.found_files):
+            self.choose_to_copy_files()
+
+    def get_copy_destination(self):
+        dest = input(
+            f"\n{Console.green('Do you wish to copy these files to?  > ')}")
+
+        destination_turple = get_file_or_folder_path(dest)
+        if destination_turple is not None:
+            return destination_turple[0]
+        else:
+            Console.error('Invalid path. Please try again!')
+            return self.get_copy_destination()
+
+    def make_dir_if_not_exists(self, folder):
+        folder_name = input(
+            f"\n{Console.yellow('Folder name to store files ? (Y/n) > ')}")
+        if folder_name.strip() == '':
+            return self.make_dir_if_not_exists(folder)
+
+        today = datetime.now()
+
+        if today.hour < 12:
+            h = "00"
+        else:
+            h = "12"
+        ext = self.found_files[0].split('.')[-1]
+
+        folder_name = f"{folder}/{folder_name}/{today.strftime('%Y%m%d')}/{ext.upper()}"
+        try:
+            os.makedirs(folder_name)
+        except FileExistsError:
+            pass
+        return folder_name
+
+    def copy_files(self):
+        Console.log(f'Copying {len(self.found_files)}')
+        file_dest = self.get_copy_destination()
+        dest_folder = self.make_dir_if_not_exists(file_dest)
+        for f in self.found_files:
+            dest_file = dest_folder + '/' + f.split('/')[-1]
+            copy_file(f, dest_file)
+
+    def choose_to_copy_files(self):
+        choosen = 'y'
+        choice = input(
+            f"\n{Console.green('Do you wish to copy these files? (Y/n) > ')}")
+        if choice.strip() == '':
+            choice = choosen
+        else:
+            choice = choice.strip()
+
+        if 'y' != choice.lower() and 'n' != choice.lower():
+            Console.error('Wrong choice. Try again')
+            self.choose_to_copy_files()
+        elif 'n' in choice.lower():
+            Console.log(f'Bye!!')
+        elif 'y' in choice.lower():
+            self.copy_files()
+        else:
+            Console.log(f'Something went wrong')
 
     def get_file(self):
-        file_name = input(f"\n{Console.green('Enter name of a file you would like to find > ')}")
+        file_name = input(
+            f"\n{Console.green('Enter name of a file you would like to find > ')}")
         valid = len(file_name.strip()) > 1
-        if valid :
+        if valid:
             self.file_name = file_name
             return
         Console.error('Can not be empty, please try again...')
         self.get_file()
 
     def get_place(self):
-        place_name = input(f"\n{Console.green('Where to find the file (Valid path) > ')}")
+        place_name = input(
+            f"\n{Console.green('Where to find the file (Valid path) > ')}")
         folder_path = get_file_or_folder_path(place_name)
         if folder_path:
             self.folder_path = folder_path
@@ -409,11 +486,10 @@ class FileFinder():
         Console.error('Path should be valid...')
         self.get_place()
 
-
     def get_user_input(self):
         self.get_file()
         self.get_place()
-        return self.file_name , self.folder_path
+        return self.file_name, self.folder_path
 
     def run(self):
         search_query = self.get_user_input()
@@ -426,13 +502,13 @@ class Tanzania(Page):
 
     def get_regions(self, soup):
         regions = soup.select('li.toclevel-1')
-        return list(map(lambda region: ' '.join(region.text.split(' ')[1:]) , regions))[1:-3]
+        return list(map(lambda region: ' '.join(region.text.split(' ')[1:]), regions))[1:-3]
 
     def get_local_soup(self):
         page = self.get_page()
         return self.get_soup(page)
 
-    def get_district_list(self,dhead):
+    def get_district_list(self, dhead):
         dis = []
         for ol in dhead.parent.next_siblings:
             try:
@@ -443,50 +519,49 @@ class Tanzania(Page):
     def parse_wards(self, wards_page):
         for p in wards_page.select('p'):
             if 'administratively' in p.text.lower():
-               return p.text
+                return p.text
         return "NaN"
-        
 
-    def get_wards(self,url):
-        self.URL =  url
+    def get_wards(self, url):
+        self.URL = url
         soup = self.get_local_soup()
         return self.parse_wards(soup)
 
-            
     def get_nice_format(self, dists):
-        dist_dict =[]
+        dist_dict = []
         dist_population = 0
         dist_name = ''
         base_url = "https://en.wikipedia.org/"
         urls = dists.select('a')
-        for index, dist in enumerate(dists.text.split('\n')):     
-            url = base_url + urls[index]['href']    
+        for index, dist in enumerate(dists.text.split('\n')):
+            url = base_url + urls[index]['href']
             pop = dist.strip().split(' ')
             if len(pop) == 2:
                 dist_name = ' '.join(pop)
                 dist_population = 'NaN'
-            elif len(pop)  == 4:
-                dist_name =' '.join(pop[:-1])
-                if 'http' in pop[-1] : 
-                    dist_population = pop[-1].strip(':')[0] 
+            elif len(pop) == 4:
+                dist_name = ' '.join(pop[:-1])
+                if 'http' in pop[-1]:
+                    dist_population = pop[-1].strip(':')[0]
                 else:
                     dist_population = pop[-1]
-            elif len(pop) in [3,8]:
+            elif len(pop) in [3, 8]:
                 dist_name = ' '.join(pop[:-1])
                 dist_population = pop[-1]
-            elif len(pop) == 5: # with url as last element
+            elif len(pop) == 5:  # with url as last element
                 dist_name = ' '.join(pop[:3])
-                dist_population =pop[3].strip(':')
+                dist_population = pop[3].strip(':')
             elif len(pop) == 6:
-                dist_name =' '.join(pop[:3])
-                dist_population =' '.join(pop[3:])
+                dist_name = ' '.join(pop[:3])
+                dist_population = ' '.join(pop[3:])
             elif len(pop) == 7:
-                dist_name =' '.join(pop[:3])
-                dist_population =pop[3]
+                dist_name = ' '.join(pop[:3])
+                dist_population = pop[3]
             else:
                 print(len(pop))
             ward_details = self.get_wards(url)
-            dist_dict.append({'distict': dist_name, 'population': dist_population, 'ward_details':ward_details})
+            dist_dict.append(
+                {'distict': dist_name, 'population': dist_population, 'ward_details': ward_details})
 
         return dist_dict
 
@@ -494,8 +569,10 @@ class Tanzania(Page):
         districts_heads = soup.select('h2>span.mw-headline')
         districts = {}
         for dis in list(districts_heads)[1:-3]:
-            districts[dis.text] =  self.get_nice_format(self.get_district_list(dis))
+            districts[dis.text] = self.get_nice_format(
+                self.get_district_list(dis))
         return districts
+
     def write_to_file(self, data):
         fname = 'districts.json'
         Console.log(f'Writting results to {fname}...')
@@ -507,11 +584,12 @@ class Tanzania(Page):
         soup = self.get_local_soup()
         regions = self.get_regions(soup)
         districts = self.get_district(soup)
-        
-        self.write_to_file({'districts':districts})
+
+        self.write_to_file({'districts': districts})
 
     def run(self):
         self.process_page()
+
 
 def appFactory(choice, modules):
     try:
@@ -522,10 +600,12 @@ def appFactory(choice, modules):
         Console.error('Wrong module')
         exit(1)
 
+
 def instructions(modules):
     for mod in modules:
         print(f'[{mod}] {modules[mod]["desc"]}')
         time.sleep(.3)
+
 
 def main(modules):
     time.sleep(.3)
@@ -539,5 +619,3 @@ def main(modules):
     except ValueError as e:
         Console.error('Invalid input')
         exit(1)
-    
-
