@@ -432,7 +432,7 @@ class FileFinder():
             h = "12"
         ext = self.found_files[0].split('.')[-1]
 
-        folder_name = f"{folder}/{folder_name}/{today.strftime('%Y%m%d')}/{ext.upper()}"
+        folder_name = f"{folder}{os.sep}{folder_name}{os.sep}{today.strftime('%Y%m%d')}{os.sep}{ext.upper()}"
         try:
             os.makedirs(folder_name)
         except FileExistsError:
