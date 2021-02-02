@@ -381,23 +381,28 @@ class FileCompressor:
 class FileFinder():
     def __init__(self):
         self.found_files = []
+        self.supported_media_files = ['mp4', 'jpg', 'png', '3gp', 'avi']
+
+    def compare_files(self, file_1, file_2):
+        if file_1.lower() in file_2.lower():
+            self.found_files.append(file_2)
+            Console.log(f'file found at : {Console.yellow(file_2)}')
 
     def find_file(self, file_name):
         Console.log(
             f'Finding "{Console.green(file_name[0])}" in {Console.green(file_name[1][0])}. Please wait...')
-        found_files = []
-        results_counter = 0
         for file_obj in os.walk(file_name[1][0]):
             fname = file_obj[2]
             for filename in fname:
-                file_ = f'{file_obj[0]}{os.sep}{filename}'
-                if file_name[0].lower() in file_.lower():
-                    results_counter += 1
-                    time.sleep(.05)
-                    self.found_files.append(file_)
-                    Console.log(f'file found at : {Console.yellow(file_)}')
+                if str(type(file_name[0])) == "<class 'str'>":
+                    file_ = f'{file_obj[0]}{os.sep}{filename}'
+                    self.compare_files(file_name[0], file_)
+                else:
+                    for ext in file_name[0]:
+                        file_ = f'{file_obj[0]}{os.sep}{filename}'
+                        self.compare_files(f".{ext}", file_)
         print('\n')
-        print_out = f"found {results_counter} resluts of '{self.file_name}'"
+        print_out = f"found {len(self.found_files)} resluts of '{self.file_name}'"
         time.sleep(.2)
         Console.warn(line(print_out))
         time.sleep(.2)
@@ -411,28 +416,27 @@ class FileFinder():
         dest = input(
             f"\n{Console.green('Do you wish to copy these files to?  > ')}")
 
+        folder_name = input(
+            f"\n{Console.yellow('Folder name to store files ? > ')}")
+
         destination_turple = get_file_or_folder_path(dest)
-        if destination_turple is not None:
-            return destination_turple[0]
+        if destination_turple is not None and folder_name.strip():
+            return destination_turple[0], folder_name
         else:
-            Console.error('Invalid path. Please try again!')
+            Console.error(
+                'Invalid path or missing folder name. Please try again!')
             return self.get_copy_destination()
 
-    def make_dir_if_not_exists(self, folder):
-        folder_name = input(
-            f"\n{Console.yellow('Folder name to store files ? (Y/n) > ')}")
-        if folder_name.strip() == '':
-            return self.make_dir_if_not_exists(folder)
-
+    def make_dir_if_not_exists(self, folder, fld_name, filename):
         today = datetime.now()
 
         if today.hour < 12:
             h = "00"
         else:
             h = "12"
-        ext = self.found_files[0].split('.')[-1]
+        ext = filename.split('.')[-1]
 
-        folder_name = f"{folder}{os.sep}{folder_name}{os.sep}{today.strftime('%Y%m%d')}{os.sep}{ext.upper()}"
+        folder_name = f"{folder}{os.sep}{fld_name}{os.sep}{today.strftime('%Y%m%d')}{os.sep}{ext.upper()}"
         try:
             os.makedirs(folder_name)
         except FileExistsError:
@@ -441,10 +445,11 @@ class FileFinder():
 
     def copy_files(self):
         Console.log(f'Copying {len(self.found_files)}')
-        file_dest = self.get_copy_destination()
-        dest_folder = self.make_dir_if_not_exists(file_dest)
+        file_dest, folder_name = self.get_copy_destination()
         for f in self.found_files:
-            dest_file = dest_folder + '/' + f.split('/')[-1]
+            dest_folder = self.make_dir_if_not_exists(
+                file_dest, folder_name, f)
+            dest_file = dest_folder + os.sep + f.split(os.sep)[-1]
             copy_file(f, dest_file)
 
     def choose_to_copy_files(self):
@@ -487,7 +492,21 @@ class FileFinder():
         self.get_place()
 
     def get_user_input(self):
-        self.get_file()
+        choice = None
+        try:
+            choice = int(input(
+                f"\n{Console.green('Choose (1) for media files, (2) for other queries > ')}"))
+        except Exception:
+            pass
+
+        if choice not in [1, 2]:
+            Console.error('Wrong input. Please try again!')
+            return self.get_user_input()
+
+        if choice == 2:
+            self.get_file()
+        else:
+            self.file_name = self.supported_media_files
         self.get_place()
         return self.file_name, self.folder_path
 
