@@ -139,4 +139,7 @@ def copy_file(file_name, destination_file):
             f'{file_name} you are trying to copy to {destination_file} does not exist.')
 
     Console.log(f'Copying "{file_name}" to "{destination_file}"')
-    return shutil.copy(file_name, destination_file)
+    try:
+        return shutil.copy(file_name, destination_file)
+    except Exception:
+        pass

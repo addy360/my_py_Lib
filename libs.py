@@ -439,7 +439,7 @@ class FileFinder():
         folder_name = f"{folder}{os.sep}{fld_name}{os.sep}{today.strftime('%Y%m%d')}{os.sep}{ext.upper()}"
         try:
             os.makedirs(folder_name)
-        except FileExistsError:
+        except Exception:
             pass
         return folder_name
 
