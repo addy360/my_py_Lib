@@ -8,7 +8,7 @@ import sys
 import shutil
 from datetime import datetime
 
-from utils import Console, Page, get_file_or_folder_path, delete_file, line, GenKeys, copy_file
+from utils import Console, Page, get_file_or_folder_path, delete_file, line, GenKeys, copy_file, run_cmd
 
 try:
     from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -608,6 +608,45 @@ class Tanzania(Page):
 
     def run(self):
         self.process_page()
+
+
+class CloneSites:
+    def __init__(self):
+        pass
+
+    def get_website_url(self):
+        url = input(
+            f"\n{Console.green('Enter URL of the site to clone > ')}")
+        if url.strip() == '':
+            Console.error('URL can not be empty. Please try again!')
+            return self.get_website_url()
+        self.url = url
+
+    def get_path_to_store_cloned_site(self):
+        path_to_store = input(
+            f"\n{Console.green('Enter path to store cloned site ( Leave empty to store in current directory ) > ')}")
+        path_to_store = get_file_or_folder_path(path_to_store)
+        if path_to_store == None:
+            Console.error('Invalid path. Please try again!')
+            return self.get_path_to_store_cloned_site()
+        self.path_to_store = path_to_store[0]
+
+    def clone_site(self):
+        pwd = os.getcwd()
+        os.chdir(self.path_to_store)
+        cmd = ["wget", "--limit-rate=200k", "--no-clobber", "--convert-links",
+               "--random-wait", "-rpEe", "robots=off", "-U mozilla", self.url]
+        cmd = ['ls']
+        run_cmd(cmd)
+        os.chdir(pwd)
+
+    def run(self):
+        Console.log('Lets clone you some sites')
+        time.sleep(.25)
+        self.get_website_url()
+        time.sleep(.25)
+        self.get_path_to_store_cloned_site()
+        self.clone_site()
 
 
 def appFactory(choice, modules):

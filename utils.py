@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 
 try:
     from colorama import Fore, Style
@@ -143,3 +144,10 @@ def copy_file(file_name, destination_file):
         return shutil.copy(file_name, destination_file)
     except Exception:
         pass
+
+
+def run_cmd(cmd=[]):
+    try:
+        subprocess.call(cmd)
+    except subprocess.CalledProcessError as e:
+        Console.error(str(e))
