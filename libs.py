@@ -8,7 +8,7 @@ import sys
 import shutil
 from datetime import datetime
 
-from utils import Console, Page, get_file_or_folder_path, delete_file, line, GenKeys, copy_file, run_cmd
+from utils import Console, Page, get_file_or_folder_path, delete_file, line, GenKeys, copy_file, run_cmd, multi_process_this
 
 try:
     from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -388,19 +388,24 @@ class FileFinder():
             self.found_files.append(file_2)
             Console.log(f'file found at : {Console.yellow(file_2)}')
 
+    def actual_finding_of_a_file(self, filename):
+        if str(type(self.file_to_find)) == "<class 'str'>":
+            file_ = f'{self.dir_path}{os.sep}{filename}'
+            self.compare_files(self.file_to_find, file_)
+        else:
+            for ext in self.file_to_find:
+                file_ = f'{self.dir_path}{os.sep}{filename}'
+                self.compare_files(f".{ext}", file_)
+
     def find_file(self, file_name):
+        self.file_to_find = file_name[0]
         Console.log(
-            f'Finding "{Console.green(file_name[0])}" in {Console.green(file_name[1][0])}. Please wait...')
+            f'Finding "{Console.green(self.file_to_find)}" in {Console.green(file_name[1][0])}. Please wait...')
         for file_obj in os.walk(file_name[1][0]):
-            fname = file_obj[2]
-            for filename in fname:
-                if str(type(file_name[0])) == "<class 'str'>":
-                    file_ = f'{file_obj[0]}{os.sep}{filename}'
-                    self.compare_files(file_name[0], file_)
-                else:
-                    for ext in file_name[0]:
-                        file_ = f'{file_obj[0]}{os.sep}{filename}'
-                        self.compare_files(f".{ext}", file_)
+            self.fnames = file_obj[2]
+            self.dir_path = file_obj[0]
+            multi_process_this(self.fnames, self.actual_finding_of_a_file)
+
         print('\n')
         print_out = f"found {len(self.found_files)} resluts of '{self.file_name}'"
         time.sleep(.2)
@@ -443,14 +448,16 @@ class FileFinder():
             pass
         return folder_name
 
+    def copy_file(self, file_name):
+        dest_folder = self.make_dir_if_not_exists(
+            self.file_dest, self.folder_name, file_name)
+        dest_file = dest_folder + os.sep + file_name.split(os.sep)[-1]
+        copy_file(file_name, dest_file)
+
     def copy_files(self):
         Console.log(f'Copying {len(self.found_files)}')
-        file_dest, folder_name = self.get_copy_destination()
-        for f in self.found_files:
-            dest_folder = self.make_dir_if_not_exists(
-                file_dest, folder_name, f)
-            dest_file = dest_folder + os.sep + f.split(os.sep)[-1]
-            copy_file(f, dest_file)
+        self.file_dest, self.folder_name = self.get_copy_destination()
+        multi_process_this(self.found_files, self.copy_file)
 
     def choose_to_copy_files(self):
         choosen = 'y'
@@ -636,7 +643,6 @@ class CloneSites:
         os.chdir(self.path_to_store)
         cmd = ["wget", "--limit-rate=200k", "--no-clobber", "--convert-links",
                "--random-wait", "-rpEe", "robots=off", "-U mozilla", self.url]
-        cmd = ['ls']
         run_cmd(cmd)
         os.chdir(pwd)
 

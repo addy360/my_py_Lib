@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import concurrent.futures
 
 try:
     from colorama import Fore, Style
@@ -151,3 +152,8 @@ def run_cmd(cmd=[]):
         subprocess.call(cmd)
     except subprocess.CalledProcessError as e:
         Console.error(str(e))
+
+
+def multi_process_this(_list, _func):
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        executor.map(_func, _list)
