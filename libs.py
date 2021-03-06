@@ -379,23 +379,32 @@ class FileCompressor:
 
 
 class FileFinder():
+
     def __init__(self):
         self.found_files = []
         self.supported_media_files = ['mp4', 'jpg', 'png', '3gp', 'avi']
 
-    def compare_files(self, file_1, file_2):
+    def found_file_cb(self, found_file):
+        self.found_files.append(found_file)
+        Console.log(f'file found at : {Console.yellow(found_file)}')
+
+    def compare_files(self, file_1, file_2, _callback):
         if file_1.lower() in file_2.lower():
-            self.found_files.append(file_2)
-            Console.log(f'file found at : {Console.yellow(file_2)}')
+            try:
+                _callback(found_file=file_2)
+            except Exception as e:
+                print(e)
 
     def actual_finding_of_a_file(self, filename):
         if str(type(self.file_to_find)) == "<class 'str'>":
             file_ = f'{self.dir_path}{os.sep}{filename}'
-            self.compare_files(self.file_to_find, file_)
+            self.compare_files(self.file_to_find, file_,
+                               self.found_file_cb)
         else:
             for ext in self.file_to_find:
                 file_ = f'{self.dir_path}{os.sep}{filename}'
-                self.compare_files(f".{ext}", file_)
+                self.compare_files(
+                    f".{ext}", file_, self.found_file_cb)
 
     def find_file(self, file_name):
         self.file_to_find = file_name[0]
